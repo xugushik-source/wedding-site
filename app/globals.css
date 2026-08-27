@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==============================================================
+   ТЕМА 1 — «Классика»
+   Чернильный ink на слоновой кости, античное золото как акцент.
+   Playfair Display (display) + EB Garamond (текст).
+   ============================================================== */
+[data-theme='classic'] {
+  --color-bg: #faf6ef;
+  --color-surface: #f1e9da;
+  --color-ink: #2b2420;
+  --color-accent: #7a2e2e;   /* глубокое вино */
+  --color-accent-2: #b08d57; /* античное золото */
+  --color-line: #cbb994;
+  --font-display: var(--font-playfair);
+  --font-body: var(--font-garamond);
+}
+
+/* ==============================================================
+   ТЕМА 2 — «Минимализм»
+   Белый / графит / пыльная роза. Много воздуха.
+   Space Grotesk (display) + Inter (текст).
+   ============================================================== */
+[data-theme='modern'] {
+  --color-bg: #ffffff;
+  --color-surface: #f4f1ef;
+  --color-ink: #14120f;
+  --color-accent: #c9a9a6;   /* пыльная роза */
+  --color-accent-2: #14120f;
+  --color-line: #e2ddda;
+  --font-display: var(--font-space-grotesk);
+  --font-body: var(--font-inter);
+}
+
+/* ==============================================================
+   ТЕМА 3 — «Природа»
+   Оливковый / пыльная роза на пергаменте.
+   Cormorant (display) + Lora (текст).
+   ============================================================== */
+[data-theme='botanical'] {
+  --color-bg: #efe9dc;
+  --color-surface: #e3ddcc;
+  --color-ink: #33312c;
+  --color-accent: #4a5b3a;   /* глубокий олив */
+  --color-accent-2: #c98a7d; /* пыльная роза */
+  --color-line: #a9ad8f;
+  --font-display: var(--font-cormorant);
+  --font-body: var(--font-lora);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body), serif;
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+}
+
+/* Уважаем reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Видимый фокус для клавиатурной навигации */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.section {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+.section-inner {
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
