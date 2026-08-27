@@ -9,6 +9,7 @@ const LINKS = [
   { href: '#venue', label: 'Место' },
   { href: '#dresscode', label: 'Дресс-код' },
   { href: '#rsvp', label: 'RSVP' },
+  { href: '#seating', label: 'Рассадка' },
   { href: '#hotels', label: 'Гостиницы' },
   { href: '#gallery', label: 'Фото' },
   { href: '#guest-photos', label: 'Ваши фото' },

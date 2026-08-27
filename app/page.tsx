@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Navigation from '@/components/Navigation';
+import WishesPopup from '@/components/WishesPopup';
 import Hero from '@/components/sections/Hero';
 import Story from '@/components/sections/Story';
 import Program from '@/components/sections/Program';
@@ -10,6 +11,7 @@ import Hotels from '@/components/sections/Hotels';
 import Transport from '@/components/sections/Transport';
 import Gallery from '@/components/sections/Gallery';
 import GuestPhotos from '@/components/sections/GuestPhotos';
+import SeatingChart from '@/components/sections/SeatingChart';
 import Gifts from '@/components/sections/Gifts';
 import Contacts from '@/components/sections/Contacts';
 import type {
@@ -20,6 +22,8 @@ import type {
   TransportOption,
   GalleryPhoto,
   GiftRegistryItem,
+  SeatingTable,
+  SeatingGuest,
 } from '@/lib/types';
 
 // Страница рендерится на сервере при каждом запросе, чтобы
@@ -59,6 +63,8 @@ export default async function HomePage() {
   let transport: unknown = null;
   let gallery: unknown = null;
   let gifts: unknown = null;
+  let seatingTables: unknown = null;
+  let seatingGuests: unknown = null;
 
   try {
     const supabase = createClient();
@@ -70,6 +76,8 @@ export default async function HomePage() {
       supabase.from('transport_options').select('*').order('sort_order'),
       supabase.from('gallery_photos').select('*').order('sort_order'),
       supabase.from('gift_registry').select('*').order('sort_order'),
+      supabase.from('seating_tables').select('*').order('sort_order'),
+      supabase.from('seating_guests').select('*').order('sort_order'),
     ]);
     [
       { data: config },
@@ -79,6 +87,8 @@ export default async function HomePage() {
       { data: transport },
       { data: gallery },
       { data: gifts },
+      { data: seatingTables },
+      { data: seatingGuests },
     ] = results;
   } catch {
     // Supabase не настроен или недоступен — ниже используются
@@ -90,12 +100,17 @@ export default async function HomePage() {
   return (
     <>
       <Navigation />
+      <WishesPopup />
       <Hero config={siteConfig} />
       <Story events={(story as StoryEvent[]) || []} />
       <Program items={(program as ProgramItem[]) || []} />
       <Venue config={siteConfig} />
       <DressCode config={siteConfig} />
       <RSVPForm />
+      <SeatingChart
+        tables={(seatingTables as SeatingTable[]) || []}
+        guests={(seatingGuests as SeatingGuest[]) || []}
+      />
       <Hotels hotels={(hotels as Hotel[]) || []} />
       <Transport options={(transport as TransportOption[]) || []} />
       <Gallery photos={(gallery as GalleryPhoto[]) || []} />

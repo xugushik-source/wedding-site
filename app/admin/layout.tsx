@@ -1,6 +1,4 @@
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
 import LogoutButton from './LogoutButton';
 
 const ADMIN_LINKS = [
@@ -8,23 +6,15 @@ const ADMIN_LINKS = [
   { href: '/admin/content', label: 'Контент' },
   { href: '/admin/gallery', label: 'Фотографии' },
   { href: '/admin/rsvp', label: 'Ответы гостей' },
+  { href: '/admin/seating', label: 'Рассадка' },
   { href: '/admin/theme', label: 'Тема оформления' },
 ];
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/admin/login');
-  }
-
   return (
     <div className="min-h-screen bg-white text-black">
       <div className="border-b border-gray-200 px-6 py-3 flex items-center justify-between">

@@ -1,6 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+// Клиент для использования в серверных компонентах / route handlers.
+// Читает сессию из cookies, нужен для проверки "пара залогинена ли"
+// в защищённых /admin страницах.
 export function createClient() {
   const cookieStore = cookies();
 
@@ -20,7 +23,8 @@ export function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // игнорируем — обрабатывается middleware
+            // setAll вызван из серверного компонента — можно игнорировать,
+            // если есть middleware, обновляющий сессию (см. README).
           }
         },
       },

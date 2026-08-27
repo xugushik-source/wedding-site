@@ -6,7 +6,7 @@
 // просто сменить это поле, код переделывать не нужно.
 // ============================================================
 
-export type ThemeId = 'classic' | 'modern' | 'botanical';
+export type ThemeId = 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -32,6 +32,18 @@ export const THEMES: ThemeMeta[] = [
     label: 'Природа',
     description:
       'Оливковый + пыльная роза на пергаменте. Cormorant + Lora. Ботанические линии-разделители между блоками.',
+  },
+  {
+    id: 'midnight',
+    label: 'Полночь',
+    description:
+      'Тёмно-синий/чёрный фон, тёплое золото. Cinzel + Jost. Для вечерней, торжественной свадьбы.',
+  },
+  {
+    id: 'vintage',
+    label: 'Винтаж',
+    description:
+      'Тёплая сепия, пергамент и сиена. Prata + Vollkorn. Ностальгическое, «ретро-открыточное» настроение.',
   },
 ];
 

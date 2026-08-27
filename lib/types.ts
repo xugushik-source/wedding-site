@@ -14,7 +14,7 @@ export interface SiteConfig {
   contact_email: string;
   guest_photos_url: string | null;
   guest_photos_text: string;
-  active_theme: 'classic' | 'modern' | 'botanical';
+  active_theme: 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage';
 }
 
 export interface StoryEvent {
@@ -71,8 +71,28 @@ export interface RsvpResponse {
   guest_name: string;
   attending: boolean;
   guests_count: number;
+  additional_guest_names: string | null;
   dietary_restrictions: string | null;
   message: string | null;
   phone: string | null;
+  show_wish_publicly: boolean;
   created_at: string;
+}
+
+export interface SeatingTable {
+  id: string;
+  name: string;
+  capacity: number;
+  note: string | null;
+  pos_x: number;
+  pos_y: number;
+  sort_order: number;
+}
+
+export interface SeatingGuest {
+  id: string;
+  full_name: string;
+  table_id: string | null;
+  rsvp_response_id: string | null;
+  sort_order: number;
 }

@@ -25,7 +25,7 @@ create table if not exists site_config (
   contact_email text default '',
   guest_photos_url text,
   guest_photos_text text default 'Есть свои фотографии со свадьбы? Поделитесь ими — соберём все воспоминания в одном месте.',
-  active_theme text not null default 'classic' check (active_theme in ('classic','modern','botanical')),
+  active_theme text not null default 'classic' check (active_theme in ('classic','modern','botanical','midnight','vintage')),
   updated_at timestamptz default now(),
   constraint single_row check (id = 1)
 );
@@ -37,6 +37,12 @@ insert into site_config (id) values (1) on conflict (id) do nothing;
 alter table site_config add column if not exists guest_photos_url text;
 alter table site_config add column if not exists guest_photos_text text
   default 'Есть свои фотографии со свадьбы? Поделитесь ими — соберём все воспоминания в одном месте.';
+
+-- Расширяет список допустимых тем на уже существующих базах —
+-- без этого новые темы "Полночь" и "Винтаж" не сохранятся в старом проекте.
+alter table site_config drop constraint if exists site_config_active_theme_check;
+alter table site_config add constraint site_config_active_theme_check
+  check (active_theme in ('classic','modern','botanical','midnight','vintage'));
 
 -- ------------------------------------------------------------
 -- 2. История знакомства
@@ -119,9 +125,41 @@ create table if not exists rsvp_responses (
   guest_name text not null,
   attending boolean not null,
   guests_count int not null default 1,
+  additional_guest_names text,
   dietary_restrictions text,
   message text,
   phone text,
+  show_wish_publicly boolean not null default false,
+  created_at timestamptz default now()
+);
+
+-- Безопасно добавляет поле, если таблица создана более ранней версией схемы.
+alter table rsvp_responses add column if not exists additional_guest_names text;
+alter table rsvp_responses add column if not exists show_wish_publicly boolean not null default false;
+
+-- ------------------------------------------------------------
+-- 9. Рассадка гостей — столы на схеме зала
+-- ------------------------------------------------------------
+create table if not exists seating_tables (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  capacity int not null default 8,
+  note text,
+  pos_x double precision not null default 50,
+  pos_y double precision not null default 50,
+  sort_order int not null default 0,
+  created_at timestamptz default now()
+);
+
+-- ------------------------------------------------------------
+-- 10. Рассадка гостей — конкретные гости за столами
+-- ------------------------------------------------------------
+create table if not exists seating_guests (
+  id uuid primary key default gen_random_uuid(),
+  full_name text not null,
+  table_id uuid references seating_tables(id) on delete set null,
+  rsvp_response_id uuid references rsvp_responses(id) on delete set null,
+  sort_order int not null default 0,
   created_at timestamptz default now()
 );
 
@@ -141,40 +179,79 @@ alter table transport_options enable row level security;
 alter table gift_registry enable row level security;
 alter table gallery_photos enable row level security;
 alter table rsvp_responses enable row level security;
+alter table seating_tables enable row level security;
+alter table seating_guests enable row level security;
 
 -- Публичное чтение контента
+drop policy if exists "public read site_config" on site_config;
 create policy "public read site_config" on site_config for select using (true);
+drop policy if exists "public read story_events" on story_events;
 create policy "public read story_events" on story_events for select using (true);
+drop policy if exists "public read program_items" on program_items;
 create policy "public read program_items" on program_items for select using (true);
+drop policy if exists "public read hotels" on hotels;
 create policy "public read hotels" on hotels for select using (true);
+drop policy if exists "public read transport_options" on transport_options;
 create policy "public read transport_options" on transport_options for select using (true);
+drop policy if exists "public read gift_registry" on gift_registry;
 create policy "public read gift_registry" on gift_registry for select using (true);
+drop policy if exists "public read gallery_photos" on gallery_photos;
 create policy "public read gallery_photos" on gallery_photos for select using (true);
+-- Схема рассадки видна всем гостям без входа — это как обычная бумажная
+-- табличка со схемой зала на входе на свадьбу, не приватные данные.
+drop policy if exists "public read seating_tables" on seating_tables;
+create policy "public read seating_tables" on seating_tables for select using (true);
+drop policy if exists "public read seating_guests" on seating_guests;
+create policy "public read seating_guests" on seating_guests for select using (true);
 
 -- Запись/изменение контента — только авторизованный пользователь (пара)
+drop policy if exists "auth write site_config" on site_config;
 create policy "auth write site_config" on site_config for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write story_events" on story_events;
 create policy "auth write story_events" on story_events for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write program_items" on program_items;
 create policy "auth write program_items" on program_items for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write hotels" on hotels;
 create policy "auth write hotels" on hotels for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write transport_options" on transport_options;
 create policy "auth write transport_options" on transport_options for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write gift_registry" on gift_registry;
 create policy "auth write gift_registry" on gift_registry for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write gallery_photos" on gallery_photos;
 create policy "auth write gallery_photos" on gallery_photos for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write seating_tables" on seating_tables;
+create policy "auth write seating_tables" on seating_tables for all
+  using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+drop policy if exists "auth write seating_guests" on seating_guests;
+create policy "auth write seating_guests" on seating_guests for all
   using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 -- RSVP: любой гость может отправить форму (insert),
 -- но читать/менять/удалять ответы может только пара
+drop policy if exists "public insert rsvp" on rsvp_responses;
 create policy "public insert rsvp" on rsvp_responses for insert
   with check (true);
+-- Исключение: текст пожелания и имя видны всем анонимно, но ТОЛЬКО
+-- для строк, которые пара явно одобрила через show_wish_publicly —
+-- остальные поля (телефон, диета и т.д.) в такой публичной выборке
+-- не запрашиваются на фронтенде, хотя технически видны через RLS.
+drop policy if exists "public read approved wishes" on rsvp_responses;
+create policy "public read approved wishes" on rsvp_responses for select
+  using (show_wish_publicly = true);
+drop policy if exists "auth read rsvp" on rsvp_responses;
 create policy "auth read rsvp" on rsvp_responses for select
   using (auth.role() = 'authenticated');
+drop policy if exists "auth update rsvp" on rsvp_responses;
 create policy "auth update rsvp" on rsvp_responses for update
   using (auth.role() = 'authenticated');
+drop policy if exists "auth delete rsvp" on rsvp_responses;
 create policy "auth delete rsvp" on rsvp_responses for delete
   using (auth.role() = 'authenticated');
 
@@ -185,9 +262,12 @@ insert into storage.buckets (id, name, public)
 values ('photos', 'photos', true)
 on conflict (id) do nothing;
 
+drop policy if exists "public read photos" on storage.objects;
 create policy "public read photos" on storage.objects for select
   using (bucket_id = 'photos');
+drop policy if exists "auth upload photos" on storage.objects;
 create policy "auth upload photos" on storage.objects for insert
   with check (bucket_id = 'photos' and auth.role() = 'authenticated');
+drop policy if exists "auth delete photos" on storage.objects;
 create policy "auth delete photos" on storage.objects for delete
   using (bucket_id = 'photos' and auth.role() = 'authenticated');

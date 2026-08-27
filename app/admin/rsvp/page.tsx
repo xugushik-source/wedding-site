@@ -5,12 +5,13 @@ import { createClient } from '@/lib/supabase/client';
 import type { RsvpResponse } from '@/lib/types';
 
 function toCsv(rows: RsvpResponse[]): string {
-  const headers = ['Имя', 'Придёт', 'Гостей', 'Ограничения', 'Телефон', 'Сообщение', 'Дата ответа'];
+  const headers = ['Имя', 'Придёт', 'Гостей', 'Имена доп. гостей', 'Ограничения', 'Телефон', 'Сообщение', 'Дата ответа'];
   const lines = rows.map((r) =>
     [
       r.guest_name,
       r.attending ? 'Да' : 'Нет',
       r.guests_count,
+      (r.additional_guest_names || '').replace(/\n/g, '; '),
       r.dietary_restrictions || '',
       r.phone || '',
       (r.message || '').replace(/\n/g, ' '),
@@ -49,6 +50,15 @@ export default function RsvpPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function togglePublic(row: RsvpResponse) {
+    const supabase = createClient();
+    const next = !row.show_wish_publicly;
+    setRows((prev) =>
+      prev.map((r) => (r.id === row.id ? { ...r, show_wish_publicly: next } : r))
+    );
+    await supabase.from('rsvp_responses').update({ show_wish_publicly: next }).eq('id', row.id);
+  }
+
   const totalGuests = rows
     .filter((r) => r.attending)
     .reduce((sum, r) => sum + r.guests_count, 0);
@@ -84,9 +94,11 @@ export default function RsvpPage() {
                   <th className="py-2 pr-4">Имя</th>
                   <th className="py-2 pr-4">Придёт</th>
                   <th className="py-2 pr-4">Гостей</th>
+                  <th className="py-2 pr-4">Имена доп. гостей</th>
                   <th className="py-2 pr-4">Ограничения</th>
                   <th className="py-2 pr-4">Телефон</th>
                   <th className="py-2 pr-4">Сообщение</th>
+                  <th className="py-2 pr-4">На сайте</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,9 +107,22 @@ export default function RsvpPage() {
                     <td className="py-2 pr-4">{r.guest_name}</td>
                     <td className="py-2 pr-4">{r.attending ? 'Да' : 'Нет'}</td>
                     <td className="py-2 pr-4">{r.guests_count}</td>
+                    <td className="py-2 pr-4 whitespace-pre-line">{r.additional_guest_names || '—'}</td>
                     <td className="py-2 pr-4">{r.dietary_restrictions || '—'}</td>
                     <td className="py-2 pr-4">{r.phone || '—'}</td>
                     <td className="py-2 pr-4">{r.message || '—'}</td>
+                    <td className="py-2 pr-4">
+                      {r.message ? (
+                        <input
+                          type="checkbox"
+                          checked={r.show_wish_publicly}
+                          onChange={() => togglePublic(r)}
+                          title="Показывать это пожелание всплывающим на сайте"
+                        />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

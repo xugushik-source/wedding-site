@@ -10,6 +10,7 @@ const MIN_FILL_TIME_MS = 1500;
 export default function RSVPForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [attending, setAttending] = useState<'yes' | 'no' | ''>('');
+  const [guestsCount, setGuestsCount] = useState(1);
   const renderedAt = useRef(Date.now());
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -32,6 +33,7 @@ export default function RSVPForm() {
       guest_name: String(data.get('guest_name') || ''),
       attending: data.get('attending') === 'yes',
       guests_count: Number(data.get('guests_count') || 1),
+      additional_guest_names: String(data.get('additional_guest_names') || '') || null,
       dietary_restrictions: String(data.get('dietary_restrictions') || ''),
       message: String(data.get('message') || ''),
       phone: String(data.get('phone') || ''),
@@ -125,10 +127,29 @@ export default function RSVPForm() {
                   min={1}
                   max={10}
                   defaultValue={1}
+                  onChange={(e) => setGuestsCount(Number(e.target.value) || 1)}
                   className="w-full border rounded px-4 py-2 bg-transparent"
                   style={{ borderColor: 'var(--color-line)' }}
                 />
               </div>
+              {guestsCount > 1 && (
+                <div>
+                  <label htmlFor="additional_guest_names" className="block text-sm mb-1">
+                    Имена остальных гостей (по одному на строке)
+                  </label>
+                  <textarea
+                    id="additional_guest_names"
+                    name="additional_guest_names"
+                    rows={Math.min(guestsCount - 1, 4)}
+                    placeholder={'Например:\nМария Иванова\nПётр Иванов'}
+                    className="w-full border rounded px-4 py-2 bg-transparent"
+                    style={{ borderColor: 'var(--color-line)' }}
+                  />
+                  <p className="text-xs opacity-60 mt-1">
+                    Нужно для рассадки — чтобы каждому подписать место за столом
+                  </p>
+                </div>
+              )}
               <div>
                 <label htmlFor="dietary_restrictions" className="block text-sm mb-1">
                   Пищевые ограничения / аллергии

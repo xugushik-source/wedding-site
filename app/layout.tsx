@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 import {
   Playfair_Display,
   EB_Garamond,
-  Space_Grotesk,
+  Montserrat,
   Inter,
   Cormorant,
   Lora,
+  Yeseva_One,
+  Jost,
+  Prata,
+  Vollkorn,
 } from 'next/font/google';
 import { createClient } from '@/lib/supabase/server';
 import './globals.css';
@@ -15,12 +19,24 @@ const playfair = Playfair_Display({ subsets: ['latin', 'cyrillic'], variable: '-
 const garamond = EB_Garamond({ subsets: ['latin', 'cyrillic'], variable: '--font-garamond' });
 
 // Шрифты темы «Минимализм»
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' });
+// Space Grotesk не поддерживает кириллицу — имена пары показывались бы
+// не тем шрифтом. Montserrat официально расширен Google Fonts под кириллицу.
+const montserrat = Montserrat({ subsets: ['latin', 'cyrillic'], variable: '--font-montserrat' });
 const inter = Inter({ subsets: ['latin', 'cyrillic'], variable: '--font-inter' });
 
 // Шрифты темы «Природа»
 const cormorant = Cormorant({ subsets: ['latin', 'cyrillic'], variable: '--font-cormorant' });
 const lora = Lora({ subsets: ['latin', 'cyrillic'], variable: '--font-lora' });
+
+// Шрифты темы «Полночь»
+// Cinzel не имеет кириллицы в официальной версии Google Fonts — заменён на
+// Yeseva One, свадебный дисплейный шрифт с полной поддержкой кириллицы.
+const yesevaOne = Yeseva_One({ subsets: ['latin', 'cyrillic'], weight: '400', variable: '--font-yeseva' });
+const jost = Jost({ subsets: ['latin', 'cyrillic'], variable: '--font-jost' });
+
+// Шрифты темы «Винтаж»
+const prata = Prata({ subsets: ['latin', 'cyrillic'], weight: '400', variable: '--font-prata' });
+const vollkorn = Vollkorn({ subsets: ['latin', 'cyrillic'], variable: '--font-vollkorn' });
 
 export const metadata: Metadata = {
   title: 'Наша свадьба',
@@ -51,10 +67,14 @@ export default async function RootLayout({
   const fontVars = [
     playfair.variable,
     garamond.variable,
-    spaceGrotesk.variable,
+    montserrat.variable,
     inter.variable,
     cormorant.variable,
     lora.variable,
+    yesevaOne.variable,
+    jost.variable,
+    prata.variable,
+    vollkorn.variable,
   ].join(' ');
 
   return (

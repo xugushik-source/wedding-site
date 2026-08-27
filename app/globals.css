@@ -30,7 +30,7 @@
   --color-accent: #c9a9a6;   /* пыльная роза */
   --color-accent-2: #14120f;
   --color-line: #e2ddda;
-  --font-display: var(--font-space-grotesk);
+  --font-display: var(--font-montserrat);
   --font-body: var(--font-inter);
 }
 
@@ -48,6 +48,38 @@
   --color-line: #a9ad8f;
   --font-display: var(--font-cormorant);
   --font-body: var(--font-lora);
+}
+
+/* ==============================================================
+   ТЕМА 4 — «Полночь»
+   Тёмно-синий/чёрный фон, тёплое золото. Для вечерней свадьбы.
+   Cinzel (display) + Jost (текст).
+   ============================================================== */
+[data-theme='midnight'] {
+  --color-bg: #14161f;
+  --color-surface: #1b2030;
+  --color-ink: #f3f1ea;      /* светлый текст на тёмном фоне */
+  --color-accent: #cfa356;   /* тёплое золото */
+  --color-accent-2: #8f97b3; /* пыльный перивинкл */
+  --color-line: #3a3f52;
+  --font-display: var(--font-yeseva);
+  --font-body: var(--font-jost);
+}
+
+/* ==============================================================
+   ТЕМА 5 — «Винтаж»
+   Тёплая сепия, пергамент и сиена. Ностальгическое настроение.
+   Prata (display) + Vollkorn (текст).
+   ============================================================== */
+[data-theme='vintage'] {
+  --color-bg: #ece4d3;
+  --color-surface: #ddd0b8;
+  --color-ink: #3d3226;
+  --color-accent: #8a5a3b;   /* тёплая сиена */
+  --color-accent-2: #b08968; /* светлый тан */
+  --color-line: #c2b291;
+  --font-display: var(--font-prata);
+  --font-body: var(--font-vollkorn);
 }
 
 html {

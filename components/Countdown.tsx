@@ -12,7 +12,13 @@ function getTimeLeft(target: Date) {
   };
 }
 
-export default function Countdown({ weddingDate }: { weddingDate: string }) {
+export default function Countdown({
+  weddingDate,
+  onPhoto = false,
+}: {
+  weddingDate: string;
+  onPhoto?: boolean;
+}) {
   const target = new Date(weddingDate);
   const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(target));
 
@@ -33,7 +39,10 @@ export default function Countdown({ weddingDate }: { weddingDate: string }) {
     <div className="flex gap-4 md:gap-8 justify-center" aria-label="Обратный отсчёт до свадьбы">
       {units.map(([label, value]) => (
         <div key={label} className="text-center min-w-[3.5rem]">
-          <div className="font-display text-3xl md:text-5xl tabular-nums" style={{ color: 'var(--color-accent)' }}>
+          <div
+            className="font-display text-3xl md:text-5xl tabular-nums"
+            style={{ color: onPhoto ? '#fff' : 'var(--color-accent)' }}
+          >
             {String(value).padStart(2, '0')}
           </div>
           <div className="text-xs md:text-sm uppercase tracking-wide mt-1 opacity-70">{label}</div>
