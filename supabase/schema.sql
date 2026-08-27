@@ -25,7 +25,7 @@ create table if not exists site_config (
   contact_email text default '',
   guest_photos_url text,
   guest_photos_text text default 'Есть свои фотографии со свадьбы? Поделитесь ими — соберём все воспоминания в одном месте.',
-  active_theme text not null default 'classic' check (active_theme in ('classic','modern','botanical','midnight','vintage')),
+  active_theme text not null default 'classic' check (active_theme in ('classic','modern','botanical','midnight','vintage','luxury')),
   updated_at timestamptz default now(),
   constraint single_row check (id = 1)
 );
@@ -42,7 +42,7 @@ alter table site_config add column if not exists guest_photos_text text
 -- без этого новые темы "Полночь" и "Винтаж" не сохранятся в старом проекте.
 alter table site_config drop constraint if exists site_config_active_theme_check;
 alter table site_config add constraint site_config_active_theme_check
-  check (active_theme in ('classic','modern','botanical','midnight','vintage'));
+  check (active_theme in ('classic','modern','botanical','midnight','vintage','luxury'));
 
 -- ------------------------------------------------------------
 -- 2. История знакомства

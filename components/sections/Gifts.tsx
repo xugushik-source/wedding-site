@@ -11,7 +11,7 @@ export default function Gifts({ items }: { items: GiftRegistryItem[] }) {
           {items.map((item) => (
             <div key={item.id} className="text-center">
               <h3 className="font-display text-lg">{item.title}</h3>
-              {item.description && <p className="opacity-75 mt-1">{item.description}</p>}
+              {item.description && <p className="opacity-75 mt-1 whitespace-pre-line">{item.description}</p>}
               {item.link && (
                 <a
                   href={item.link}

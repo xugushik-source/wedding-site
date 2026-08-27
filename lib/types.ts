@@ -14,7 +14,7 @@ export interface SiteConfig {
   contact_email: string;
   guest_photos_url: string | null;
   guest_photos_text: string;
-  active_theme: 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage';
+  active_theme: 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage' | 'luxury';
 }
 
 export interface StoryEvent {

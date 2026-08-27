@@ -56,7 +56,7 @@ export default function WishesPopup() {
       style={{ backgroundColor: 'var(--color-bg)', border: '1px solid var(--color-line)' }}
       role="status"
     >
-      <p className="text-sm leading-relaxed">{current.message}</p>
+      <p className="text-sm leading-relaxed whitespace-pre-line">{current.message}</p>
       <p className="text-xs mt-2 opacity-60 font-display">— {current.guest_name}</p>
     </div>
   );

@@ -11,7 +11,7 @@ export default function Transport({ options }: { options: TransportOption[] }) {
           {options.map((option) => (
             <div key={option.id}>
               <h3 className="font-display text-lg">{option.title}</h3>
-              {option.description && <p className="opacity-75 mt-1">{option.description}</p>}
+              {option.description && <p className="opacity-75 mt-1 whitespace-pre-line">{option.description}</p>}
             </div>
           ))}
         </div>

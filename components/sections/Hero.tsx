@@ -50,7 +50,7 @@ export default function Hero({ config }: { config: SiteConfig }) {
           <Countdown weddingDate={config.wedding_date} onPhoto={onPhoto} />
         </div>
         {config.intro_text && (
-          <p className="mt-10 max-w-lg mx-auto text-sm md:text-base opacity-90">
+          <p className="mt-10 max-w-lg mx-auto text-sm md:text-base opacity-90 whitespace-pre-line">
             {config.intro_text}
           </p>
         )}

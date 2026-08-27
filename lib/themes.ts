@@ -6,7 +6,7 @@
 // просто сменить это поле, код переделывать не нужно.
 // ============================================================
 
-export type ThemeId = 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage';
+export type ThemeId = 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage' | 'luxury';
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -25,7 +25,7 @@ export const THEMES: ThemeMeta[] = [
     id: 'modern',
     label: 'Минимализм',
     description:
-      'Белый + графит + пыльная роза. Space Grotesk + Inter. Крупная монограмма инициалов, много воздуха.',
+      'Белый + графит + пыльная роза. Montserrat + Inter. Крупная монограмма инициалов, много воздуха.',
   },
   {
     id: 'botanical',
@@ -37,13 +37,19 @@ export const THEMES: ThemeMeta[] = [
     id: 'midnight',
     label: 'Полночь',
     description:
-      'Тёмно-синий/чёрный фон, тёплое золото. Cinzel + Jost. Для вечерней, торжественной свадьбы.',
+      'Тёмно-синий/чёрный фон, тёплое золото. Yeseva One + Jost. Для вечерней, торжественной свадьбы.',
   },
   {
     id: 'vintage',
     label: 'Винтаж',
     description:
       'Тёплая сепия, пергамент и сиена. Prata + Vollkorn. Ностальгическое, «ретро-открыточное» настроение.',
+  },
+  {
+    id: 'luxury',
+    label: 'Люкс',
+    description:
+      'Глубокий чёрный + шампань-золото + бордо. Cormorant Garamond + EB Garamond. Максимально торжественно, для формального вечернего приёма.',
   },
 ];
 

@@ -10,6 +10,7 @@ import {
   Jost,
   Prata,
   Vollkorn,
+  Cormorant_Garamond,
 } from 'next/font/google';
 import { createClient } from '@/lib/supabase/server';
 import './globals.css';
@@ -37,6 +38,13 @@ const jost = Jost({ subsets: ['latin', 'cyrillic'], variable: '--font-jost' });
 // Шрифты темы «Винтаж»
 const prata = Prata({ subsets: ['latin', 'cyrillic'], weight: '400', variable: '--font-prata' });
 const vollkorn = Vollkorn({ subsets: ['latin', 'cyrillic'], variable: '--font-vollkorn' });
+
+// Шрифт темы «Люкс» (текст использует уже подключённый EB Garamond)
+const cormorantGaramond = Cormorant_Garamond({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['400', '600'],
+  variable: '--font-cormorant-garamond',
+});
 
 export const metadata: Metadata = {
   title: 'Наша свадьба',
@@ -75,6 +83,7 @@ export default async function RootLayout({
     jost.variable,
     prata.variable,
     vollkorn.variable,
+    cormorantGaramond.variable,
   ].join(' ');
 
   return (

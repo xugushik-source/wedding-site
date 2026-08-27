@@ -26,7 +26,7 @@ export default function Story({ events }: { events: StoryEvent[] }) {
               </div>
               <div className="flex-1">
                 <h3 className="font-display text-xl mb-2">{event.title}</h3>
-                {event.description && <p className="opacity-80 leading-relaxed">{event.description}</p>}
+                {event.description && <p className="opacity-80 leading-relaxed whitespace-pre-line">{event.description}</p>}
                 {event.photo_url && (
                   <div className="relative w-full max-w-sm h-56 mt-4 rounded overflow-hidden">
                     <Image src={event.photo_url} alt={event.title} fill className="object-cover" />

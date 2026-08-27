@@ -82,6 +82,25 @@
   --font-body: var(--font-vollkorn);
 }
 
+/* ==============================================================
+   ТЕМА 6 — «Люкс»
+   Глубокий чёрный + шампань-золото + бордо. Максимально
+   торжественно, для формального вечернего приёма.
+   Cormorant Garamond (display) + EB Garamond (текст, тот же
+   шрифт, что и в «Классике» — уже подключён, пара рекомендована
+   самими авторами шрифта).
+   ============================================================== */
+[data-theme='luxury'] {
+  --color-bg: #0d0d0d;
+  --color-surface: #1a1816;
+  --color-ink: #f0e6d2;      /* светлый шампань-текст на чёрном */
+  --color-accent: #c9a04e;   /* шампань-золото */
+  --color-accent-2: #6b1f2a; /* глубокое бордо */
+  --color-line: #3d3529;
+  --font-display: var(--font-cormorant-garamond);
+  --font-body: var(--font-garamond);
+}
+
 html {
   scroll-behavior: smooth;
 }

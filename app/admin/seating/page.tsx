@@ -218,24 +218,37 @@ export default function SeatingAdminPage() {
             )}
             {tables.map((table) => {
               const count = guests.filter((g) => g.table_id === table.id).length;
+              const tableGuests = guests.filter((g) => g.table_id === table.id);
               const over = count > table.capacity;
               return (
                 <div
                   key={table.id}
-                  onPointerDown={() => handlePointerDown(table.id)}
                   style={{ left: `${table.pos_x}%`, top: `${table.pos_y}%` }}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full flex flex-col items-center justify-center text-xs cursor-grab active:cursor-grabbing select-none border-2 ${
-                    selectedTableId === table.id
-                      ? 'border-black bg-white'
-                      : over
-                        ? 'border-red-400 bg-red-50'
-                        : 'border-gray-400 bg-white'
-                  }`}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
                 >
-                  <span className="font-semibold truncate max-w-[3.5rem]">{table.name}</span>
-                  <span className="text-gray-500">
-                    {count}/{table.capacity}
-                  </span>
+                  <div
+                    onPointerDown={() => handlePointerDown(table.id)}
+                    className={`w-16 h-16 rounded-full flex flex-col items-center justify-center text-xs cursor-grab active:cursor-grabbing select-none border-2 ${
+                      selectedTableId === table.id
+                        ? 'border-black bg-white'
+                        : over
+                          ? 'border-red-400 bg-red-50'
+                          : 'border-gray-400 bg-white'
+                    }`}
+                  >
+                    <span className="font-semibold truncate max-w-[3.5rem]">{table.name}</span>
+                    <span className="text-gray-500">
+                      {count}/{table.capacity}
+                    </span>
+                  </div>
+                  {/* Имена гостей под столом — чтобы сразу видеть, кто с кем сидит,
+                      не открывая панель стола. pointer-events-none, чтобы не мешать
+                      перетаскиванию самого кружка стола. */}
+                  {tableGuests.length > 0 && (
+                    <div className="pointer-events-none mt-1 max-w-[7rem] text-center text-[10px] leading-tight text-gray-700 bg-white/90 rounded px-1">
+                      {tableGuests.map((g) => g.full_name).join(', ')}
+                    </div>
+                  )}
                 </div>
               );
             })}

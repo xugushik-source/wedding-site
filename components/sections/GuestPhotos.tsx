@@ -11,7 +11,7 @@ export default function GuestPhotos({ config }: { config: SiteConfig }) {
     <section id="guest-photos" className="section">
       <div className="section-inner text-center">
         <h2 className="font-display text-3xl md:text-4xl mb-6">Ваши фотографии</h2>
-        <p className="opacity-80 leading-relaxed max-w-md mx-auto mb-6">
+        <p className="opacity-80 leading-relaxed max-w-md mx-auto mb-6 whitespace-pre-line">
           {config.guest_photos_text}
         </p>
         <a

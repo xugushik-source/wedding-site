@@ -56,22 +56,33 @@ export default function SeatingChart({
           </p>
         )}
 
-        <div className="relative w-full h-72 md:h-96 rounded border" style={{ borderColor: 'var(--color-line)' }}>
+        <div className="relative w-full h-80 md:h-[26rem] rounded border" style={{ borderColor: 'var(--color-line)' }}>
           {tables.map((table) => {
             const isMatch = matchedTable?.id === table.id;
+            const tableGuests = guests.filter((g) => g.table_id === table.id);
             return (
               <div
                 key={table.id}
-                style={{
-                  left: `${table.pos_x}%`,
-                  top: `${table.pos_y}%`,
-                  borderColor: isMatch ? 'var(--color-accent)' : 'var(--color-line)',
-                  backgroundColor: isMatch ? 'var(--color-accent)' : 'var(--color-bg)',
-                  color: isMatch ? 'var(--color-bg)' : 'var(--color-ink)',
-                }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center text-[10px] md:text-xs font-semibold text-center transition-colors"
+                style={{ left: `${table.pos_x}%`, top: `${table.pos_y}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
               >
-                {table.name}
+                <div
+                  style={{
+                    borderColor: isMatch ? 'var(--color-accent)' : 'var(--color-line)',
+                    backgroundColor: isMatch ? 'var(--color-accent)' : 'var(--color-bg)',
+                    color: isMatch ? 'var(--color-bg)' : 'var(--color-ink)',
+                  }}
+                  className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center text-[10px] md:text-xs font-semibold text-center transition-colors"
+                >
+                  {table.name}
+                </div>
+                {tableGuests.length > 0 && (
+                  <div
+                    className="mt-1 max-w-[6rem] md:max-w-[7rem] text-center text-[9px] md:text-[10px] leading-tight opacity-80"
+                  >
+                    {tableGuests.map((g) => g.full_name).join(', ')}
+                  </div>
+                )}
               </div>
             );
           })}

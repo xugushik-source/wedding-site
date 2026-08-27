@@ -13,7 +13,7 @@ export default function Hotels({ hotels }: { hotels: Hotel[] }) {
               <h3 className="font-display text-lg">{hotel.name}</h3>
               {hotel.address && <p className="text-sm opacity-75 mt-1">{hotel.address}</p>}
               {hotel.phone && <p className="text-sm opacity-75">{hotel.phone}</p>}
-              {hotel.notes && <p className="text-sm opacity-75 mt-2">{hotel.notes}</p>}
+              {hotel.notes && <p className="text-sm opacity-75 mt-2 whitespace-pre-line">{hotel.notes}</p>}
               {hotel.website && (
                 <a
                   href={hotel.website}

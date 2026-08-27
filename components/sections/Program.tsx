@@ -15,7 +15,7 @@ export default function Program({ items }: { items: ProgramItem[] }) {
               </div>
               <div>
                 <h3 className="font-display text-lg">{item.title}</h3>
-                {item.description && <p className="opacity-75 text-sm mt-1">{item.description}</p>}
+                {item.description && <p className="opacity-75 text-sm mt-1 whitespace-pre-line">{item.description}</p>}
               </div>
             </li>
           ))}
