@@ -8,6 +8,7 @@ const ADMIN_LINKS = [
   { href: '/admin/rsvp', label: 'Ответы гостей' },
   { href: '/admin/seating', label: 'Рассадка' },
   { href: '/admin/theme', label: 'Тема оформления' },
+  { href: '/admin/modules', label: 'Модули' },
 ];
 
 export default function AdminLayout({

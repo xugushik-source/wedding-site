@@ -8,7 +8,6 @@ import Venue from '@/components/sections/Venue';
 import DressCode from '@/components/sections/DressCode';
 import RSVPForm from '@/components/sections/RSVPForm';
 import Hotels from '@/components/sections/Hotels';
-import Transport from '@/components/sections/Transport';
 import Gallery from '@/components/sections/Gallery';
 import GuestPhotos from '@/components/sections/GuestPhotos';
 import SeatingChart from '@/components/sections/SeatingChart';
@@ -19,12 +18,12 @@ import type {
   StoryEvent,
   ProgramItem,
   Hotel,
-  TransportOption,
   GalleryPhoto,
   GiftRegistryItem,
   SeatingTable,
   SeatingGuest,
 } from '@/lib/types';
+import { DEFAULT_MODULES } from '@/lib/modules';
 
 // Страница рендерится на сервере при каждом запросе, чтобы
 // изменения из админки сразу были видны гостям.
@@ -47,20 +46,14 @@ const FALLBACK_CONFIG: SiteConfig = {
   guest_photos_url: null,
   guest_photos_text: 'Есть свои фотографии со свадьбы? Поделитесь ими — соберём все воспоминания в одном месте.',
   active_theme: 'classic',
+  enabled_modules: DEFAULT_MODULES,
 };
 
 export default async function HomePage() {
-  // Всё оборачиваем в try/catch: если переменные окружения Supabase
-  // не заданы или неверны (например, сайт только что залили в
-  // репозиторий/задеплоили, но забыли настроить .env), createClient()
-  // падает сразу, синхронно — до того как отработает .catch() у
-  // Promise.all ниже. Без этой обёртки вся страница отдавала 500
-  // вместо того чтобы показать заглушку с понятной подсказкой.
   let config: unknown = null;
   let story: unknown = null;
   let program: unknown = null;
   let hotels: unknown = null;
-  let transport: unknown = null;
   let gallery: unknown = null;
   let gifts: unknown = null;
   let seatingTables: unknown = null;
@@ -73,7 +66,6 @@ export default async function HomePage() {
       supabase.from('story_events').select('*').order('sort_order'),
       supabase.from('program_items').select('*').order('sort_order'),
       supabase.from('hotels').select('*').order('sort_order'),
-      supabase.from('transport_options').select('*').order('sort_order'),
       supabase.from('gallery_photos').select('*').order('sort_order'),
       supabase.from('gift_registry').select('*').order('sort_order'),
       supabase.from('seating_tables').select('*').order('sort_order'),
@@ -84,7 +76,6 @@ export default async function HomePage() {
       { data: story },
       { data: program },
       { data: hotels },
-      { data: transport },
       { data: gallery },
       { data: gifts },
       { data: seatingTables },
@@ -96,27 +87,33 @@ export default async function HomePage() {
   }
 
   const siteConfig = (config as SiteConfig) || FALLBACK_CONFIG;
+  // Module System: соответствует site_config.enabled_modules; если
+  // колонки ещё нет на конкретном Supabase-проекте (старый деплой,
+  // schema.sql не обновлён) — подставляется DEFAULT_MODULES,
+  // воспроизводящий сегодняшнее поведение "всё включено".
+  const modules = siteConfig.enabled_modules ?? DEFAULT_MODULES;
 
   return (
     <>
-      <Navigation />
+      <Navigation enabledModules={modules} />
       <WishesPopup />
       <Hero config={siteConfig} />
-      <Story events={(story as StoryEvent[]) || []} />
-      <Program items={(program as ProgramItem[]) || []} />
-      <Venue config={siteConfig} />
-      <DressCode config={siteConfig} />
-      <RSVPForm />
-      <SeatingChart
-        tables={(seatingTables as SeatingTable[]) || []}
-        guests={(seatingGuests as SeatingGuest[]) || []}
-      />
-      <Hotels hotels={(hotels as Hotel[]) || []} />
-      <Transport options={(transport as TransportOption[]) || []} />
-      <Gallery photos={(gallery as GalleryPhoto[]) || []} />
-      <GuestPhotos config={siteConfig} />
-      <Gifts items={(gifts as GiftRegistryItem[]) || []} />
-      <Contacts config={siteConfig} />
+      {modules.story && <Story events={(story as StoryEvent[]) || []} />}
+      {modules.program && <Program items={(program as ProgramItem[]) || []} />}
+      {modules.venue && <Venue config={siteConfig} />}
+      {modules.dressCode && <DressCode config={siteConfig} />}
+      {modules.rsvp && <RSVPForm />}
+      {modules.seating && (
+        <SeatingChart
+          tables={(seatingTables as SeatingTable[]) || []}
+          guests={(seatingGuests as SeatingGuest[]) || []}
+        />
+      )}
+      {modules.hotels && <Hotels hotels={(hotels as Hotel[]) || []} />}
+      {modules.gallery && <Gallery photos={(gallery as GalleryPhoto[]) || []} />}
+      {modules.guestUploads && <GuestPhotos config={siteConfig} />}
+      {modules.gifts && <Gifts items={(gifts as GiftRegistryItem[]) || []} />}
+      {modules.contacts && <Contacts config={siteConfig} />}
     </>
   );
 }

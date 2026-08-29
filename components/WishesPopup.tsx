@@ -21,9 +21,8 @@ export default function WishesPopup() {
   useEffect(() => {
     const supabase = createClient();
     supabase
-      .from('rsvp_responses')
+      .from('public_wishes')
       .select('guest_name, message')
-      .eq('show_wish_publicly', true)
       .then(({ data }) => {
         setWishes(((data as Wish[]) || []).filter((w) => w.message?.trim()));
       });

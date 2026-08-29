@@ -4,10 +4,12 @@ import { useEffect, useState, FormEvent } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { SiteConfig } from '@/lib/types';
 import ListEditor from './ListEditor';
+import PhotoPicker from '../PhotoPicker';
 
 export default function ContentPage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [saved, setSaved] = useState(false);
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -64,12 +66,21 @@ export default function ContentPage() {
             />
           </Row>
           <Row label="Ссылка на фото обложки (URL)">
-            <input
-              className="input"
-              value={config.cover_photo_url || ''}
-              onChange={(e) => field('cover_photo_url', e.target.value)}
-              placeholder="Загрузите фото на вкладке «Фотографии» и вставьте ссылку сюда"
-            />
+            <div className="flex gap-2">
+              <input
+                className="input"
+                value={config.cover_photo_url || ''}
+                onChange={(e) => field('cover_photo_url', e.target.value)}
+                placeholder="Загрузите фото на вкладке «Фотографии» и вставьте ссылку сюда"
+              />
+              <button
+                type="button"
+                onClick={() => setCoverPickerOpen(true)}
+                className="text-xs border border-gray-300 rounded px-3 whitespace-nowrap"
+              >
+                Выбрать фото
+              </button>
+            </div>
           </Row>
           <Row label="Приветственный текст">
             <textarea
@@ -165,7 +176,7 @@ export default function ContentPage() {
           { key: 'event_date', label: 'Дата', type: 'date' },
           { key: 'title', label: 'Заголовок', type: 'text' },
           { key: 'description', label: 'Описание', type: 'textarea' },
-          { key: 'photo_url', label: 'Ссылка на фото (необязательно)', type: 'text' },
+          { key: 'photo_url', label: 'Ссылка на фото (необязательно)', type: 'photo' },
         ]}
       />
 
@@ -223,6 +234,12 @@ export default function ContentPage() {
           font-size: 0.875rem;
         }
       `}</style>
+
+      <PhotoPicker
+        open={coverPickerOpen}
+        onClose={() => setCoverPickerOpen(false)}
+        onSelect={(url) => field('cover_photo_url', url)}
+      />
     </div>
   );
 }

@@ -46,18 +46,64 @@ const cormorantGaramond = Cormorant_Garamond({
   variable: '--font-cormorant-garamond',
 });
 
-export const metadata: Metadata = {
-  title: 'Наша свадьба',
-  description: 'Приглашаем вас разделить с нами этот особенный день',
-};
+// Заголовок вкладки и описание для шаринга ссылки (превью в
+// мессенджерах) — раньше были статичной строкой, одинаковой для
+// всех клиентов. Теперь читаются из site_config, той же таблицы,
+// что и остальной контент. Порядок "невеста & жених" — как в
+// components/sections/Hero.tsx, для единообразия.
+//
+// Open Graph / Twitter добавлены той же функцией, тем же запросом
+// (одна дополнительная колонка cover_photo_url в select, не новый
+// запрос) — единственный источник картинки превью, отдельного поля
+// под OG-изображение не заводилось.
+export async function generateMetadata(): Promise<Metadata> {
+  let title = 'Наша свадьба';
+  let description = 'Приглашаем вас разделить с нами этот особенный день';
+  let coverPhotoUrl: string | null = null;
+  try {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('site_config')
+      .select('groom_name, bride_name, intro_text, cover_photo_url')
+      .eq('id', 1)
+      .single();
+    if (data?.bride_name && data?.groom_name) {
+      title = `${data.bride_name} & ${data.groom_name}`;
+    }
+    if (data?.intro_text) {
+      description = data.intro_text;
+    }
+    if (data?.cover_photo_url) {
+      coverPhotoUrl = data.cover_photo_url;
+    }
+  } catch {
+    // Supabase не настроен/недоступен — используем значения по
+    // умолчанию, как и раньше; OG-изображение в этом случае просто
+    // не указывается (заглушку не придумываем).
+  }
+  return {
+    title,
+    description,
+    openGraph: {
+      type: 'website',
+      title,
+      description,
+      ...(coverPhotoUrl ? { images: [coverPhotoUrl] } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      ...(coverPhotoUrl ? { images: [coverPhotoUrl] } : {}),
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Тема читается из site_config, чтобы её можно было менять
-  // из админки без пересборки и деплоя.
   let activeTheme = 'classic';
   try {
     const supabase = createClient();

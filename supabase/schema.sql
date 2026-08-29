@@ -44,6 +44,15 @@ alter table site_config drop constraint if exists site_config_active_theme_check
 alter table site_config add constraint site_config_active_theme_check
   check (active_theme in ('classic','modern','botanical','midnight','vintage','luxury'));
 
+-- Module System: какие секции публичной страницы показывать.
+-- Дефолт воспроизводит поведение до Module System — всё включено
+-- (кроме guestBook, у которого пока нет компонента вообще, это
+-- зарезервированный на будущее ключ). Hero и Transport сюда не
+-- входят: Hero всегда включён, Transport исключён из Module System
+-- по решению клиента.
+alter table site_config add column if not exists enabled_modules jsonb not null default
+  '{"story":true,"program":true,"venue":true,"dressCode":true,"rsvp":true,"seating":true,"hotels":true,"gallery":true,"guestUploads":true,"guestBook":false,"gifts":true,"contacts":true}'::jsonb;
+
 -- ------------------------------------------------------------
 -- 2. История знакомства
 -- ------------------------------------------------------------
@@ -197,8 +206,6 @@ drop policy if exists "public read gift_registry" on gift_registry;
 create policy "public read gift_registry" on gift_registry for select using (true);
 drop policy if exists "public read gallery_photos" on gallery_photos;
 create policy "public read gallery_photos" on gallery_photos for select using (true);
--- Схема рассадки видна всем гостям без входа — это как обычная бумажная
--- табличка со схемой зала на входе на свадьбу, не приватные данные.
 drop policy if exists "public read seating_tables" on seating_tables;
 create policy "public read seating_tables" on seating_tables for select using (true);
 drop policy if exists "public read seating_guests" on seating_guests;
@@ -238,13 +245,14 @@ create policy "auth write seating_guests" on seating_guests for all
 drop policy if exists "public insert rsvp" on rsvp_responses;
 create policy "public insert rsvp" on rsvp_responses for insert
   with check (true);
--- Исключение: текст пожелания и имя видны всем анонимно, но ТОЛЬКО
--- для строк, которые пара явно одобрила через show_wish_publicly —
--- остальные поля (телефон, диета и т.д.) в такой публичной выборке
--- не запрашиваются на фронтенде, хотя технически видны через RLS.
+-- Публичного select на rsvp_responses больше нет вообще — анонимный
+-- пользователь не может прочитать ни одной колонки этой таблицы
+-- напрямую, даже guest_name/message. Вместо этого — view
+-- public_wishes ниже, отдающая только эти две колонки для
+-- одобренных пожеланий (было: policy "public read approved wishes",
+-- разрешавшая select всей строки, включая phone и
+-- dietary_restrictions, для любой строки с show_wish_publicly = true).
 drop policy if exists "public read approved wishes" on rsvp_responses;
-create policy "public read approved wishes" on rsvp_responses for select
-  using (show_wish_publicly = true);
 drop policy if exists "auth read rsvp" on rsvp_responses;
 create policy "auth read rsvp" on rsvp_responses for select
   using (auth.role() = 'authenticated');
@@ -254,6 +262,21 @@ create policy "auth update rsvp" on rsvp_responses for update
 drop policy if exists "auth delete rsvp" on rsvp_responses;
 create policy "auth delete rsvp" on rsvp_responses for delete
   using (auth.role() = 'authenticated');
+
+-- ------------------------------------------------------------
+-- Публичный просмотр одобренных пожеланий — только 2 колонки.
+-- View выполняется с правами владельца (postgres), поэтому RLS
+-- таблицы rsvp_responses не блокирует select внутри её же
+-- определения, но наружу отдаются только guest_name и message —
+-- phone, dietary_restrictions и остальные поля недостижимы для
+-- анонимного пользователя даже напрямую через REST API.
+-- ------------------------------------------------------------
+create or replace view public_wishes as
+  select guest_name, message
+  from rsvp_responses
+  where show_wish_publicly = true;
+
+grant select on public_wishes to anon;
 
 -- ------------------------------------------------------------
 -- Storage bucket для фотографий (выполнить один раз)

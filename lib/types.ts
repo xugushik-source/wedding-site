@@ -1,3 +1,5 @@
+import type { EnabledModules } from './modules';
+
 export interface SiteConfig {
   id: number;
   groom_name: string;
@@ -15,6 +17,10 @@ export interface SiteConfig {
   guest_photos_url: string | null;
   guest_photos_text: string;
   active_theme: 'classic' | 'modern' | 'botanical' | 'midnight' | 'vintage' | 'luxury';
+  // Опционально: на уже задеплоенных сайтах, где schema.sql ещё не
+  // обновлён, колонки может не быть — код должен подставлять
+  // DEFAULT_MODULES (см. lib/modules.ts), а не полагаться на это поле.
+  enabled_modules?: EnabledModules;
 }
 
 export interface StoryEvent {

@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import PhotoPicker from '../PhotoPicker';
 
 export interface FieldDef {
   key: string;
   label: string;
-  type: 'text' | 'textarea' | 'date';
+  type: 'text' | 'textarea' | 'date' | 'photo';
 }
 
 interface Props {
   table: string;
   title: string;
-  itemNoun: string; // например "событие", "гостиницу"
+  itemNoun: string;
   fields: FieldDef[];
 }
 
@@ -22,6 +23,10 @@ export default function ListEditor({ table, title, itemNoun, fields }: Props) {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<Row>({});
+  // Хранит callback (onChange конкретного поля), который нужно
+  // вызвать при выборе фото — тот же PhotoPicker обслуживает и
+  // существующие строки, и черновик новой строки, не дублируясь.
+  const [pickerOnSelect, setPickerOnSelect] = useState<((url: string) => void) | null>(null);
 
   async function load() {
     const supabase = createClient();
@@ -91,6 +96,26 @@ export default function ListEditor({ table, title, itemNoun, fields }: Props) {
         />
       );
     }
+    if (field.type === 'photo') {
+      return (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={field.label}
+            className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => setPickerOnSelect(() => onChange)}
+            className="text-xs border border-gray-300 rounded px-2 whitespace-nowrap"
+          >
+            Выбрать фото
+          </button>
+        </div>
+      );
+    }
     return (
       <input
         type={field.type === 'date' ? 'date' : 'text'}
@@ -158,6 +183,15 @@ export default function ListEditor({ table, title, itemNoun, fields }: Props) {
           Добавить
         </button>
       </div>
+
+      <PhotoPicker
+        open={pickerOnSelect !== null}
+        onClose={() => setPickerOnSelect(null)}
+        onSelect={(url) => {
+          pickerOnSelect?.(url);
+          setPickerOnSelect(null);
+        }}
+      />
     </div>
   );
 }
