@@ -10,6 +10,7 @@ import InvitationRSVPForm from './InvitationRSVPForm';
 // те же site_config, та же rsvp_responses, та же Theme System
 // (тема наследуется от <html data-theme> в app/layout.tsx, здесь
 // её не нужно подключать заново).
+
 export const dynamic = 'force-dynamic';
 
 async function getConfigForSlug(slug: string): Promise<SiteConfig | null> {
