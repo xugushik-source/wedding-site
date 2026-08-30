@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import type { SiteConfig } from '@/lib/types';
+import Countdown from '@/components/Countdown';
 import InvitationRSVPForm from './InvitationRSVPForm';
 
 // Продукт №2: Digital Wedding Invitation. Одна мобильная страница
@@ -128,7 +129,8 @@ export default async function InvitationPage({ params }: { params: { slug: strin
             {config.groom_name}
           </h1>
           <p className="text-lg mb-6">{formatDate(config.wedding_date)}</p>
-          {config.intro_text && <p className="max-w-sm mx-auto opacity-90">{config.intro_text}</p>}
+          {config.intro_text && <p className="max-w-sm mx-auto opacity-90 mb-8">{config.intro_text}</p>}
+          <Countdown weddingDate={config.wedding_date} onPhoto={Boolean(config.cover_photo_url)} />
         </div>
       </section>
 
