@@ -9,6 +9,7 @@ const ADMIN_LINKS = [
   { href: '/admin/seating', label: 'Рассадка' },
   { href: '/admin/theme', label: 'Тема оформления' },
   { href: '/admin/modules', label: 'Модули' },
+  { href: '/admin/invitation', label: 'Digital Invitation' },
 ];
 
 export default function AdminLayout({

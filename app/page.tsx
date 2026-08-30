@@ -47,6 +47,8 @@ const FALLBACK_CONFIG: SiteConfig = {
   guest_photos_text: 'Есть свои фотографии со свадьбы? Поделитесь ими — соберём все воспоминания в одном месте.',
   active_theme: 'classic',
   enabled_modules: DEFAULT_MODULES,
+  invitation_enabled: false,
+  invitation_slug: null,
 };
 
 export default async function HomePage() {

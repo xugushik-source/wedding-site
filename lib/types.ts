@@ -21,6 +21,8 @@ export interface SiteConfig {
   // обновлён, колонки может не быть — код должен подставлять
   // DEFAULT_MODULES (см. lib/modules.ts), а не полагаться на это поле.
   enabled_modules?: EnabledModules;
+  invitation_enabled: boolean;
+  invitation_slug: string | null;
 }
 
 export interface StoryEvent {
