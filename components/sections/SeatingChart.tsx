@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { SeatingTable, SeatingGuest } from '@/lib/types';
 
 export default function SeatingChart({
@@ -11,6 +11,7 @@ export default function SeatingChart({
   guests: SeatingGuest[];
 }) {
   const [query, setQuery] = useState('');
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const match = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -32,7 +33,16 @@ export default function SeatingChart({
 
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            const q = e.target.value.trim().toLowerCase();
+            if (q.length < 2) return;
+            const g = guests.find((g) => g.full_name.toLowerCase().includes(q));
+            const tableId = g?.table_id;
+            if (tableId && cardRefs.current[tableId]) {
+              cardRefs.current[tableId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }}
           placeholder="Ваше имя"
           className="w-full max-w-sm mx-auto block border rounded px-4 py-2 bg-transparent mb-3"
           style={{ borderColor: 'var(--color-line)' }}
@@ -56,32 +66,41 @@ export default function SeatingChart({
           </p>
         )}
 
-        <div className="relative w-full h-80 md:h-[26rem] rounded border" style={{ borderColor: 'var(--color-line)' }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {tables.map((table) => {
             const isMatch = matchedTable?.id === table.id;
             const tableGuests = guests.filter((g) => g.table_id === table.id);
             return (
               <div
                 key={table.id}
-                style={{ left: `${table.pos_x}%`, top: `${table.pos_y}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
+                ref={(el) => {
+                  cardRefs.current[table.id] = el;
+                }}
+                style={{
+                  borderColor: isMatch ? 'var(--color-accent)' : 'var(--color-line)',
+                  backgroundColor: isMatch ? 'var(--color-accent)' : 'var(--color-bg)',
+                  color: isMatch ? 'var(--color-bg)' : 'var(--color-ink)',
+                }}
+                className="rounded-lg border-2 p-3 transition-colors"
               >
-                <div
-                  style={{
-                    borderColor: isMatch ? 'var(--color-accent)' : 'var(--color-line)',
-                    backgroundColor: isMatch ? 'var(--color-accent)' : 'var(--color-bg)',
-                    color: isMatch ? 'var(--color-bg)' : 'var(--color-ink)',
-                  }}
-                  className="w-12 h-12 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center text-[10px] md:text-xs font-semibold text-center transition-colors"
-                >
-                  {table.name}
-                </div>
-                {tableGuests.length > 0 && (
-                  <div
-                    className="mt-1 max-w-[6rem] md:max-w-[7rem] text-center text-[9px] md:text-[10px] leading-tight opacity-80"
-                  >
-                    {tableGuests.map((g) => g.full_name).join(', ')}
+                <div className="font-display text-base font-semibold mb-1">{table.name}</div>
+                {table.note && <div className="text-[11px] opacity-70 mb-1">{table.note}</div>}
+                {tableGuests.length > 0 ? (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {tableGuests.map((g) => (
+                      <span
+                        key={g.id}
+                        className="text-[11px] rounded px-1.5 py-0.5 leading-tight"
+                        style={{
+                          backgroundColor: isMatch ? 'rgba(255,255,255,0.25)' : 'var(--color-surface)',
+                        }}
+                      >
+                        {g.full_name}
+                      </span>
+                    ))}
                   </div>
+                ) : (
+                  <span className="text-[11px] opacity-50">Пусто</span>
                 )}
               </div>
             );

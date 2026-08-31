@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { SeatingTable, SeatingGuest, RsvpResponse } from '@/lib/types';
 
@@ -11,8 +11,6 @@ export default function SeatingAdminPage() {
   const [manualName, setManualName] = useState('');
   const [importing, setImporting] = useState(false);
   const [loading, setLoading] = useState(true);
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef<{ id: string; startedDrag: boolean } | null>(null);
 
   async function load() {
     const supabase = createClient();
@@ -75,9 +73,7 @@ export default function SeatingAdminPage() {
     const supabase = createClient();
     await supabase.from('seating_tables').insert({
       name: `Стол ${tables.length + 1}`,
-      capacity: 8,
-      pos_x: 20 + ((tables.length * 15) % 60),
-      pos_y: 20 + ((tables.length * 23) % 60),
+      capacity: 10,
       sort_order: tables.length,
     });
     load();
@@ -94,6 +90,23 @@ export default function SeatingAdminPage() {
     await supabase.from('seating_guests').update({ table_id: null }).eq('table_id', id);
     await supabase.from('seating_tables').delete().eq('id', id);
     setSelectedTableId(null);
+    load();
+  }
+
+  // Перестановка местами вместо пиксельного перетаскивания — два
+  // стола просто меняются sort_order. Надёжно работает пальцем,
+  // не требует точного попадания в координаты.
+  async function moveTable(id: string, direction: -1 | 1) {
+    const idx = tables.findIndex((t) => t.id === id);
+    const swapIdx = idx + direction;
+    if (idx === -1 || swapIdx < 0 || swapIdx >= tables.length) return;
+    const a = tables[idx];
+    const b = tables[swapIdx];
+    const supabase = createClient();
+    await Promise.all([
+      supabase.from('seating_tables').update({ sort_order: b.sort_order }).eq('id', a.id),
+      supabase.from('seating_tables').update({ sort_order: a.sort_order }).eq('id', b.id),
+    ]);
     load();
   }
 
@@ -121,60 +134,6 @@ export default function SeatingAdminPage() {
     setGuests((prev) => prev.filter((g) => g.id !== guestId));
   }
 
-  // ------------------------------------------------------------
-  // Перетаскивание столов по схеме (мышь и палец — Pointer Events)
-  // ------------------------------------------------------------
-  const handlePointerDown = useCallback((tableId: string) => {
-    dragState.current = { id: tableId, startedDrag: false };
-  }, []);
-
-  useEffect(() => {
-    function toPercent(clientX: number, clientY: number) {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return null;
-      const x = Math.min(96, Math.max(4, ((clientX - rect.left) / rect.width) * 100));
-      const y = Math.min(92, Math.max(8, ((clientY - rect.top) / rect.height) * 100));
-      return { x, y };
-    }
-
-    function handleMove(e: PointerEvent) {
-      if (!dragState.current) return;
-      const pos = toPercent(e.clientX, e.clientY);
-      if (!pos) return;
-      dragState.current.startedDrag = true;
-      setTables((prev) =>
-        prev.map((t) => (t.id === dragState.current!.id ? { ...t, pos_x: pos.x, pos_y: pos.y } : t))
-      );
-    }
-
-    async function handleUp() {
-      if (!dragState.current) return;
-      const { id, startedDrag } = dragState.current;
-      if (startedDrag) {
-        const table = tables.find((t) => t.id === id);
-        if (table) {
-          const supabase = createClient();
-          await supabase
-            .from('seating_tables')
-            .update({ pos_x: table.pos_x, pos_y: table.pos_y })
-            .eq('id', id);
-        }
-      } else {
-        // Не двигали — значит это был клик, открываем панель стола
-        setSelectedTableId(id);
-      }
-      dragState.current = null;
-    }
-
-    window.addEventListener('pointermove', handleMove);
-    window.addEventListener('pointerup', handleUp);
-    return () => {
-      window.removeEventListener('pointermove', handleMove);
-      window.removeEventListener('pointerup', handleUp);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tables]);
-
   const selectedTable = tables.find((t) => t.id === selectedTableId) || null;
   const unassigned = guests.filter((g) => !g.table_id);
   const guestsAtSelected = guests.filter((g) => g.table_id === selectedTableId);
@@ -183,8 +142,10 @@ export default function SeatingAdminPage() {
     <div>
       <h1 className="text-2xl font-semibold mb-2">Рассадка гостей</h1>
       <p className="text-sm text-gray-600 mb-4">
-        Перетащи стол, чтобы расставить по залу. Нажми на стол (без перетаскивания),
-        чтобы назначить гостей. На сайте гости увидят эту же схему и смогут найти свой стол по имени.
+        Столы расставляются автоматически в ряд — стрелочками ▲▼ на карточке
+        меняешь порядок. Нажми на карточку, чтобы назначить гостей. Размер
+        стола не ограничен: карточка сама растёт под список гостей, ничего
+        не наезжает друг на друга.
       </p>
 
       <div className="flex gap-3 mb-4">
@@ -207,59 +168,83 @@ export default function SeatingAdminPage() {
         <p className="text-sm text-gray-500">Загрузка…</p>
       ) : (
         <>
-          <div
-            ref={canvasRef}
-            className="relative w-full h-[420px] border border-gray-300 rounded bg-gray-50 mb-4 touch-none"
-          >
-            {tables.length === 0 && (
-              <p className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
-                Пока нет столов — нажми «Добавить стол»
-              </p>
-            )}
-            {tables.map((table) => {
-              const count = guests.filter((g) => g.table_id === table.id).length;
-              const tableGuests = guests.filter((g) => g.table_id === table.id);
-              const over = count > table.capacity;
-              return (
-                <div
-                  key={table.id}
-                  style={{ left: `${table.pos_x}%`, top: `${table.pos_y}%` }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center"
-                >
+          {tables.length === 0 ? (
+            <p className="text-sm text-gray-400 border border-dashed border-gray-300 rounded p-6 text-center mb-4">
+              Пока нет столов — нажми «Добавить стол»
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-4">
+              {tables.map((table, idx) => {
+                const tableGuests = guests.filter((g) => g.table_id === table.id);
+                const over = tableGuests.length > table.capacity;
+                return (
                   <div
-                    onPointerDown={() => handlePointerDown(table.id)}
-                    className={`w-16 h-16 rounded-full flex flex-col items-center justify-center text-xs cursor-grab active:cursor-grabbing select-none border-2 ${
+                    key={table.id}
+                    className={`border-2 rounded-lg p-3 flex flex-col cursor-pointer transition-colors ${
                       selectedTableId === table.id
                         ? 'border-black bg-white'
                         : over
                           ? 'border-red-400 bg-red-50'
-                          : 'border-gray-400 bg-white'
+                          : 'border-gray-200 bg-white hover:border-gray-400'
                     }`}
+                    onClick={() => setSelectedTableId(table.id)}
                   >
-                    <span className="font-semibold truncate max-w-[3.5rem]">{table.name}</span>
-                    <span className="text-gray-500">
-                      {count}/{table.capacity}
-                    </span>
-                  </div>
-                  {/* Имена гостей под столом — чтобы сразу видеть, кто с кем сидит,
-                      не открывая панель стола. pointer-events-none, чтобы не мешать
-                      перетаскиванию самого кружка стола. */}
-                  {tableGuests.length > 0 && (
-                    <div className="pointer-events-none mt-1 max-w-[7rem] text-center text-[10px] leading-tight text-gray-700 bg-white/90 rounded px-1">
-                      {tableGuests.map((g) => g.full_name).join(', ')}
+                    <div className="flex items-start justify-between gap-1 mb-2">
+                      <span className="font-semibold text-sm truncate">{table.name}</span>
+                      <div className="flex flex-col shrink-0 -mt-1 -mr-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveTable(table.id, -1);
+                          }}
+                          disabled={idx === 0}
+                          className="text-gray-400 hover:text-black disabled:opacity-20 leading-none text-xs px-1"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveTable(table.id, 1);
+                          }}
+                          disabled={idx === tables.length - 1}
+                          className="text-gray-400 hover:text-black disabled:opacity-20 leading-none text-xs px-1"
+                        >
+                          ▼
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    <span className={`text-xs mb-2 ${over ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                      {tableGuests.length}/{table.capacity} мест
+                    </span>
+                    {tableGuests.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {tableGuests.map((g) => (
+                          <span
+                            key={g.id}
+                            className="text-[11px] bg-gray-100 rounded px-1.5 py-0.5 leading-tight"
+                          >
+                            {g.full_name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-gray-400">Пусто</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {!selectedTable && unassigned.length > 0 && (
             <div className="border border-gray-200 rounded p-4 mb-4">
               <h2 className="font-semibold mb-2 text-sm">
                 Гости без стола ({unassigned.length})
               </h2>
-              <p className="text-xs text-gray-500 mb-2">Нажми на стол на схеме, чтобы назначить</p>
+              <p className="text-xs text-gray-500 mb-2">Нажми на карточку стола, чтобы назначить</p>
               <ul className="text-sm space-y-1">
                 {unassigned.map((g) => (
                   <li key={g.id} className="flex justify-between items-center">
